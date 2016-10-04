@@ -20,8 +20,9 @@ public class Player : MonoBehaviour {
         var crouch = Input.GetKeyDown("space");
         var unCrouch = Input.GetKeyUp("space");
 
-        transform.Translate(moveRight, 0, moveForward);
-        transform.Rotate(0, camRotateHorizontal, 0);
+        transform.Translate(Vector3.forward * moveForward);
+        transform.Translate(Vector3.right * moveRight);
+        transform.Rotate(0, camRotateHorizontal, 0, Space.Self);
         if (crouch)
         {
             Debug.Log("crouch pressed");
