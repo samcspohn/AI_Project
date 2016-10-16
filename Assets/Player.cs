@@ -14,6 +14,16 @@ public class Player : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		
+
+		RaycastHit hit;
+
+		if (Physics.Raycast (transform.position, -Vector3.forward, out hit)) {
+			//print ("Found an object - distance: " + hit.distance);
+			Debug.DrawLine (transform.position, hit.point, Color.green);
+			//print(hit.collider.tag);
+		}
+
         var moveRight = Input.GetAxis("Horizontal") * Time.deltaTime * playerSpeed;
         var moveForward = Input.GetAxis("Vertical") * Time.deltaTime * playerSpeed;
         var camRotateHorizontal = Input.GetAxis("Mouse X") * Time.deltaTime * playerRotation;
