@@ -13,6 +13,17 @@ public class Enemy : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+
+
+		RaycastHit hit;
+
+		if (Physics.Raycast (transform.position, -Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
+			print ("Found an object - distance: " + hit.distance);
+			Debug.DrawLine (transform.position, hit.point, Color.cyan);
+			print(hit.collider.tag);
+		}
+
+		
         if(healthPoints < 50)
         {
             GameObject[] covers = GameObject.FindGameObjectsWithTag("Cover");
