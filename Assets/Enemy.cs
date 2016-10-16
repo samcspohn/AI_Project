@@ -17,9 +17,9 @@ public class Enemy : MonoBehaviour {
 
 		RaycastHit hit;
 
-		if (Physics.Raycast (transform.position, -Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
+		if (Physics.Raycast (transform.position, Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
 			print ("Found an object - distance: " + hit.distance);
-			Debug.DrawLine (transform.position, hit.point, Color.cyan);
+			Debug.DrawRay (transform.position, hit.point, Color.cyan);
 			print(hit.collider.tag);
 		}
 
@@ -40,7 +40,10 @@ public class Enemy : MonoBehaviour {
                 }
             }
             Vector3 moveTo = nearestCover.transform.position - transform.position;
-            transform.Translate(moveTo.normalized * speed * Time.deltaTime);
+            if(moveTo.magnitude > 0.2f)
+            {
+                transform.Translate(moveTo.normalized * speed * Time.deltaTime);
+            }
         }
         if (healthPoints <= 0)
         {

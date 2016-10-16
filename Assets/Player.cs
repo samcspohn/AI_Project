@@ -4,7 +4,8 @@ using System.Collections;
 public class Player : MonoBehaviour {
     private float healthPoints = 1;
     float playerSpeed = 2;
-    float playerRotation = 100;
+    float playerRotation = 65;
+    private Vector3 movementVector;
     public Transform gun;
     public GameObject bullet;
 	// Use this for initialization
@@ -24,14 +25,17 @@ public class Player : MonoBehaviour {
 			//print(hit.collider.tag);
 		}
 
-        var moveRight = Input.GetAxis("Horizontal") * Time.deltaTime * playerSpeed;
-        var moveForward = Input.GetAxis("Vertical") * Time.deltaTime * playerSpeed;
-        var camRotateHorizontal = Input.GetAxis("Mouse X") * Mathf.Pow(Time.deltaTime, 0.8f) * playerRotation;
+        var moveRight = Input.GetAxis("Horizontal");
+        var moveForward = Input.GetAxis("Vertical");
+        var camRotateHorizontal = Input.GetAxis("Mouse X") * Time.deltaTime * playerRotation;
         var crouch = Input.GetKeyDown("space");
         var unCrouch = Input.GetKeyUp("space");
 
         transform.Rotate(Vector3.up * camRotateHorizontal);
-        transform.Translate(moveRight, 0, moveForward);
+        movementVector.Set(moveRight, 0, moveForward);
+        movementVector.Normalize();
+        movementVector *= playerSpeed * Time.deltaTime;
+        transform.Translate(movementVector);
         if (crouch)
         {
             Debug.Log("crouch pressed");
