@@ -4,6 +4,7 @@ using System.Collections;
 public class Enemy : MonoBehaviour {
     public GameObject self;
     float healthPoints = 1;
+    public float speed = 3f;
 	// Use this for initialization
 	void Start () {
         healthPoints = 100;
@@ -28,7 +29,7 @@ public class Enemy : MonoBehaviour {
                 }
             }
             Vector3 moveTo = nearestCover.transform.position - transform.position;
-            transform.position = Vector3.MoveTowards(transform.position, nearestCover.transform.position, 0.5f);
+            transform.Translate(moveTo.normalized * speed * Time.deltaTime);
         }
         if (healthPoints <= 0)
         {
