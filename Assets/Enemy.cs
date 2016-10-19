@@ -13,16 +13,30 @@ public class Enemy : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-
-
 		RaycastHit hit;
         bool playerInSight = false;
-        for(int angle = -20; angle < 20; angle++)
+        float playerAngle = 0f;
+        int numOfRayHits = 0;
+        for (int angle = -40; angle < 40; angle++)
         {
-            if (Physics.Raycast (transform.position, Quaternion.Euler(0, angle, 0) * Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
-                if(hit.collider.tag == "Player")
+            //cast rays at head level
+            if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0) * transform.localScale.y, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
+            {
+                if (hit.collider.tag == "Player")
                 {
                     playerInSight = true;
+                    numOfRayHits++;
+                    playerAngle += angle;
+                }
+            }
+            //cast rays at cover level
+            if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
+            {
+                if (hit.collider.tag == "Player")
+                {
+                    playerInSight = true;
+                    numOfRayHits++;
+                    playerAngle += angle;
                 }
 
                 //print ("Found an object - distance: " + hit.distance);
@@ -31,7 +45,9 @@ public class Enemy : MonoBehaviour {
         }
         if (playerInSight)
         {
+            playerAngle = playerAngle / numOfRayHits;
             self.GetComponent<Renderer>().material.color = Color.green;
+            transform.Rotate(0, playerAngle, 0);
         }else
         {
             self.GetComponent<Renderer>().material.color = Color.red;

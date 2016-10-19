@@ -25,9 +25,9 @@ public class Player : MonoBehaviour {
 			//print(hit.collider.tag);
 		}
 
-        var moveRight = Input.GetAxis("Horizontal");
-        var moveForward = Input.GetAxis("Vertical");
-        var camRotateHorizontal = Input.GetAxis("Mouse X") * Time.deltaTime * playerRotation;
+        var moveRight = Input.GetAxisRaw("Horizontal");
+        var moveForward = Input.GetAxisRaw("Vertical");
+        var camRotateHorizontal = Input.GetAxisRaw("Mouse X") * Time.deltaTime * playerRotation;
         var crouch = Input.GetKeyDown("space");
         var unCrouch = Input.GetKeyUp("space");
 
