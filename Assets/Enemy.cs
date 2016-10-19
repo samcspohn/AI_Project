@@ -16,13 +16,26 @@ public class Enemy : MonoBehaviour {
 
 
 		RaycastHit hit;
+        bool playerInSight = false;
+        for(int angle = -20; angle < 20; angle++)
+        {
+            if (Physics.Raycast (transform.position, Quaternion.Euler(0, angle, 0) * Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
+                if(hit.collider.tag == "Player")
+                {
+                    playerInSight = true;
+                }
 
-		if (Physics.Raycast (transform.position, Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
-			print ("Found an object - distance: " + hit.distance);
-			Debug.DrawRay (transform.position, hit.point, Color.cyan);
-			print(hit.collider.tag);
-		}
-
+                //print ("Found an object - distance: " + hit.distance);
+                //print(hit.collider.tag);
+            }
+        }
+        if (playerInSight)
+        {
+            self.GetComponent<Renderer>().material.color = Color.green;
+        }else
+        {
+            self.GetComponent<Renderer>().material.color = Color.red;
+        }
 		
         if(healthPoints < 50)
         {
