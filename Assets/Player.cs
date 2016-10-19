@@ -4,7 +4,8 @@ using System.Collections;
 public class Player : MonoBehaviour {
     private float healthPoints = 1;
     float playerSpeed = 2;
-    float playerRotation = 180;
+    float playerRotation = 65;
+    private Vector3 movementVector;
     public Transform gun;
     public GameObject bullet;
 	// Use this for initialization
@@ -14,15 +15,27 @@ public class Player : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        var moveRight = Input.GetAxis("Horizontal") * Time.deltaTime * playerSpeed;
-        var moveForward = Input.GetAxis("Vertical") * Time.deltaTime * playerSpeed;
+		
+
+		RaycastHit hit;
+
+		if (Physics.Raycast (transform.position, -Vector3.forward, out hit)) {
+			//print ("Found an object - distance: " + hit.distance);
+			Debug.DrawLine (transform.position, hit.point, Color.green);
+			//print(hit.collider.tag);
+		}
+
+        var moveRight = Input.GetAxis("Horizontal");
+        var moveForward = Input.GetAxis("Vertical");
         var camRotateHorizontal = Input.GetAxis("Mouse X") * Time.deltaTime * playerRotation;
         var crouch = Input.GetKeyDown("space");
         var unCrouch = Input.GetKeyUp("space");
 
-        transform.Translate(Vector3.forward * moveForward);
-        transform.Translate(Vector3.right * moveRight);
-        transform.Rotate(0, camRotateHorizontal, 0, Space.Self);
+        transform.Rotate(Vector3.up * camRotateHorizontal);
+        movementVector.Set(moveRight, 0, moveForward);
+        movementVector.Normalize();
+        movementVector *= playerSpeed * Time.deltaTime;
+        transform.Translate(movementVector);
         if (crouch)
         {
             Debug.Log("crouch pressed");

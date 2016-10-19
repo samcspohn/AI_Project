@@ -4,6 +4,7 @@ using System.Collections;
 public class Enemy : MonoBehaviour {
     public GameObject self;
     float healthPoints = 1;
+    public float speed = 3f;
 	// Use this for initialization
 	void Start () {
         healthPoints = 100;
@@ -12,6 +13,17 @@ public class Enemy : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+
+
+		RaycastHit hit;
+
+		if (Physics.Raycast (transform.position, Vector3.forward, out hit) && hit.collider.tag.Equals("Player")) {
+			print ("Found an object - distance: " + hit.distance);
+			Debug.DrawRay (transform.position, hit.point, Color.cyan);
+			print(hit.collider.tag);
+		}
+
+		
         if(healthPoints < 50)
         {
             GameObject[] covers = GameObject.FindGameObjectsWithTag("Cover");
@@ -28,7 +40,10 @@ public class Enemy : MonoBehaviour {
                 }
             }
             Vector3 moveTo = nearestCover.transform.position - transform.position;
-            transform.position = Vector3.MoveTowards(transform.position, nearestCover.transform.position, 0.5f);
+            if(moveTo.magnitude > 0.2f)
+            {
+                transform.Translate(moveTo.normalized * speed * Time.deltaTime);
+            }
         }
         if (healthPoints <= 0)
         {
