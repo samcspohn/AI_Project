@@ -57,6 +57,8 @@ GameObject:
   - 136: {fileID: 136000010314256888}
   - 23: {fileID: 23000011025246248}
   - 114: {fileID: 114000011075655816}
+  - 114: {fileID: 114000012576500572}
+  - 54: {fileID: 54000011817275046}
   m_Layer: 0
   m_Name: enemy
   m_TagString: Enemy
@@ -177,6 +179,21 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000010617745378}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!54 &54000011817275046
+Rigidbody:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013997650146}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!65 &65000013565621448
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -215,6 +232,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gun: {fileID: 4000013370236644}
   bullet: {fileID: 1000011388805954, guid: c3e0fac6bae401f4b9d6d5ef4f627ce4, type: 2}
+--- !u!114 &114000012576500572
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000013997650146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ff4aed16037731489e40c402cc14b6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!136 &136000010314256888
 CapsuleCollider:
   m_ObjectHideFlags: 1
