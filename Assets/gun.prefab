@@ -22,6 +22,7 @@ GameObject:
   - 33: {fileID: 33000013768626570}
   - 65: {fileID: 65000012345899994}
   - 23: {fileID: 23000011908396704}
+  - 114: {fileID: 114000012934168946}
   m_Layer: 0
   m_Name: gun
   m_TagString: Untagged
@@ -119,3 +120,16 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114000012934168946
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000010996768232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639bb4a5530263946b0eaab817f1000c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gun: {fileID: 4000013706769406}
+  bullet: {fileID: 1000011388805954, guid: c3e0fac6bae401f4b9d6d5ef4f627ce4, type: 2}

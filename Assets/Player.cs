@@ -6,11 +6,12 @@ public class Player : MonoBehaviour {
     float playerSpeed = 2;
     float playerRotation = 65;
     private Vector3 movementVector;
-    public Transform gun;
-    public GameObject bullet;
+    private Gun gun;
+    //public GameObject bullet;
 	// Use this for initialization
 	void Start () {
         healthPoints = 100f;
+        gun = transform.GetComponentInChildren<Gun>();
 	}
 	
 	// Update is called once per frame
@@ -49,8 +50,9 @@ public class Player : MonoBehaviour {
         }
         if (Input.GetMouseButtonDown(0))
         {
-            GameObject clone = Instantiate(bullet, gun.position, gun.rotation) as GameObject;
-            clone.GetComponent<Rigidbody>().AddForce(clone.transform.forward * 350);
+            gun.fire();
+            //GameObject clone = Instantiate(bullet, gun.position, gun.rotation) as GameObject;
+            //clone.GetComponent<Rigidbody>().AddForce(clone.transform.forward * 350);
         }
 
 	}

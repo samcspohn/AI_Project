@@ -28,6 +28,14 @@ public class Bullet : MonoBehaviour {
             {
                 enemy.TakeDamage(15f);
             }
+        }else if(collider.tag == "Player")
+        {
+            Enemy enemy = collider.GetComponent<Enemy>();
+            Debug.Log("hit: " + enemy);
+            if (enemy != null)
+            {
+                enemy.TakeDamage(15f);
+            }
         }
         Destroy(self);
     }

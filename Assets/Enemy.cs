@@ -5,9 +5,11 @@ public class Enemy : MonoBehaviour {
     public GameObject self;
     float healthPoints = 1;
     public float speed = 3f;
+    private Gun gun;
 	// Use this for initialization
 	void Start () {
         healthPoints = 100;
+        gun = transform.GetComponentInChildren<Gun>();
 	}
 
     // Update is called once per frame
@@ -43,13 +45,12 @@ public class Enemy : MonoBehaviour {
                 //print(hit.collider.tag);
             }
         }
-        if (playerInSight)
-        {
+        if (playerInSight){
             playerAngle = playerAngle / numOfRayHits;
             self.GetComponent<Renderer>().material.color = Color.green;
             transform.Rotate(0, playerAngle, 0);
-        }else
-        {
+            gun.fire();
+        }else{
             self.GetComponent<Renderer>().material.color = Color.red;
         }
 		
