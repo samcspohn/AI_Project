@@ -5,10 +5,9 @@ public class Player : MonoBehaviour {
     private float healthPoints = 1;
     float playerSpeed = 2;
     float playerRotation = 65;
-    private Vector3 movementVector;
     private Gun gun;
     private Character charSelf;
-    //public GameObject bullet;
+
 	// Use this for initialization
 	void Start () {
         healthPoints = 100f;
@@ -32,29 +31,19 @@ public class Player : MonoBehaviour {
         var crouch = Input.GetKeyDown("space");
         var unCrouch = Input.GetKeyUp("space");
 
-        transform.Rotate(Vector3.up * camRotateHorizontal);
-        movementVector.Set(moveRight, 0, moveForward);
-        movementVector.Normalize();
-        movementVector *= playerSpeed * Time.deltaTime;
-        transform.Translate(movementVector);
+        charSelf.turn(camRotateHorizontal);
+        charSelf.move(moveRight, moveForward, playerSpeed);
         if (crouch)
         {
             charSelf.crouch();
-            //Debug.Log("crouch pressed");
-            //transform.localScale = new Vector3(0.35f, 0.25f, 0.35f);
-            //transform.Translate(0, -0.1f, 0);
         }
         else if(unCrouch)
         {
             charSelf.uncrouch();
-            //transform.localScale = new Vector3(0.35f, 0.45f, 0.35f);
-            //transform.Translate(0, 0.1f, 0);
         }
         if (Input.GetMouseButtonDown(0))
         {
             gun.fire();
-            //GameObject clone = Instantiate(bullet, gun.position, gun.rotation) as GameObject;
-            //clone.GetComponent<Rigidbody>().AddForce(clone.transform.forward * 350);
         }
 
 	}

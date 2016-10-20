@@ -4,10 +4,12 @@ using System.Collections;
 public class Enemy : MonoBehaviour {
     public GameObject self;
     float healthPoints = 1;
-    public float speed = 3f;
+    public float speed = 2f;
     private Gun gun;
     private Character charSelf;
     private float height;
+    private float moveRight;
+    private float moveForward;
     // Use this for initialization
     void Start () {
         healthPoints = 100;
@@ -19,6 +21,8 @@ public class Enemy : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+        moveForward = 0;
+        moveRight = 0;
 		RaycastHit hit;
         bool playerInSight = false;
         float playerAngle = 0f;
@@ -66,8 +70,24 @@ public class Enemy : MonoBehaviour {
             charSelf.uncrouch();
             self.GetComponent<Renderer>().material.color = Color.red;
         }
-		
-        if(healthPoints < 50)
+        //----------------------------------------------debug enemy move
+        if (Input.GetKey(KeyCode.T))
+        {
+            moveForward = 1;
+        }else if (Input.GetKey(KeyCode.G))
+        {
+            moveForward = -1;
+        }
+        if (Input.GetKey(KeyCode.F))
+        {
+            moveRight = -1;
+        }else if (Input.GetKey(KeyCode.H))
+        {
+            moveRight = 1;
+        }
+        //----------------------------------------------end of enemy move
+        charSelf.move(moveRight, moveForward, speed);
+        if (healthPoints < 50)
         {
             GameObject[] covers = GameObject.FindGameObjectsWithTag("Cover");
             GameObject nearestCover = covers[0];

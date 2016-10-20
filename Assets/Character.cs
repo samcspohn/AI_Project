@@ -3,8 +3,9 @@ using System.Collections;
 
 public class Character : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
+    private Vector3 movementVector;
+    // Use this for initialization
+    void Start () {
 	
 	}
 	
@@ -12,6 +13,18 @@ public class Character : MonoBehaviour {
 	void Update () {
 	
 	}
+    public void turn(float rotation)
+    {
+        transform.Rotate(Vector3.up * rotation);
+    }
+    public void move(float moveRight, float moveForward, float speed)
+    {
+        
+        movementVector.Set(moveRight, 0, moveForward);
+        movementVector.Normalize();
+        movementVector *= speed * Time.deltaTime;
+        transform.Translate(movementVector);
+    }
     public void crouch()
     {
         //Debug.Log("crouch pressed");
