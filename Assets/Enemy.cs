@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour {
         float playerAngle = 0f;
         int numOfRayHits = 0;
         int targetHeight = 0;
-        for (int angle = -40; angle < 40; angle++)
+        for (int angle = -40; angle < 40; angle+=2)
         {
             //cast rays at cover level
             if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
@@ -41,8 +41,11 @@ public class Enemy : MonoBehaviour {
                     targetHeight = 1;
                 }
             }
+        }
+        for (int angle = -40; angle < 40; angle += 2)
+        {
             //cast rays at head level
-            if (Physics.Raycast(transform.position + new Vector3(0, 0.4f, 0) * height, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
+            if (Physics.Raycast(transform.position + new Vector3(0, 0.4f, 0) * (1 - transform.localScale.y) , Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
             {
                 if (hit.collider.tag == "Player")
                 {
