@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Enemy : MonoBehaviour {
     public GameObject self;
+    public GameObject debugObject;
     float healthPoints = 1;
     public float speed = 2f;
     private Gun gun;
@@ -28,7 +29,11 @@ public class Enemy : MonoBehaviour {
         float playerAngle = 0f;
         int numOfRayHits = 0;
         int targetHeight = 0;
-        for (int angle = -40; angle < 40; angle+=2)
+        float previousHitDist = -1;
+        float thisHitDist;
+        float lastDistDifference = -1;
+        //float thisDistDifference = -1;
+        for (int angle = -40; angle < 40; angle+=1)
         {
             //cast rays at cover level
             if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
@@ -39,6 +44,28 @@ public class Enemy : MonoBehaviour {
                     numOfRayHits++;
                     playerAngle += angle;
                     targetHeight = 1;
+                }else//did not hit player - calculate object edge location
+                {
+                    //Instantiate(debugObject, hit.point,Quaternion.identity);
+                    thisHitDist = hit.distance;
+                    if(previousHitDist != -1)
+                    {
+                        if (lastDistDifference != -1)
+                        {
+                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
+                            {
+                                Instantiate(debugObject, hit.point, Quaternion.identity);
+                            }
+                            //now what
+                        }
+                        lastDistDifference = thisHitDist - previousHitDist;
+                    }
+                    previousHitDist = thisHitDist;
+                    
+                    /*if (thisHitDist - previousHitDist > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
+                        {
+                            Instantiate(debugObject, hit.transform);
+                        }*/
                 }
             }
         }
@@ -74,6 +101,8 @@ public class Enemy : MonoBehaviour {
             self.GetComponent<Renderer>().material.color = Color.red;
         }
         //----------------------------------------------debug enemy move
+        var camRotateHorizontal = Input.GetAxisRaw("Mouse X") * Time.deltaTime * 80;
+        charSelf.turn(camRotateHorizontal);
         if (Input.GetKey(KeyCode.T))
         {
             moveForward = 1;
