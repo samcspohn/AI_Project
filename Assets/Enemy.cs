@@ -33,7 +33,7 @@ public class Enemy : MonoBehaviour {
         float thisHitDist;
         float lastDistDifference = -1;
         //float thisDistDifference = -1;
-        for (int angle = -40; angle < 40; angle+=1)
+        for (int angle = -60; angle < 60; angle+=1)
         {
             //cast rays at cover level
             if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
@@ -52,7 +52,7 @@ public class Enemy : MonoBehaviour {
                     {
                         if (lastDistDifference != -1)
                         {
-                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
+                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference / lastDistDifference)// kicker - this is supposed to be an edge.
                             {
                                 Instantiate(debugObject, hit.point, Quaternion.identity);
                             }
