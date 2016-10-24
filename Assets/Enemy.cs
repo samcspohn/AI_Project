@@ -4,7 +4,7 @@ using System.Collections;
 public class Enemy : MonoBehaviour {
     public GameObject self;
     public GameObject debugObject;
-    float healthPoints = 1;
+    //float healthPoints = 1;
     public float speed = 2f;
     private Gun gun;
     private Character charSelf;
@@ -12,10 +12,10 @@ public class Enemy : MonoBehaviour {
     private float moveRight;
     private float moveForward;
     // Use this for initialization
-    void Start () {
-        healthPoints = 100;
+    void Start () {      
         gun = transform.GetComponentInChildren<Gun>();
         charSelf = transform.GetComponent<Character>();
+        charSelf.healthPoints = 100;
         height = transform.localScale.y;
     }
 
@@ -25,6 +25,7 @@ public class Enemy : MonoBehaviour {
         moveForward = 0;
         moveRight = 0;
 		RaycastHit hit;
+        RaycastHit prevHit = new RaycastHit();
         bool playerInSight = false;
         float playerAngle = 0f;
         int numOfRayHits = 0;
@@ -52,24 +53,31 @@ public class Enemy : MonoBehaviour {
                     {
                         if (lastDistDifference != -1)
                         {
-                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference / lastDistDifference)// kicker - this is supposed to be an edge.
+                            //float baseLength = Mathf.Sqrt(4 * Mathf.Pow(previousHitDist, 2) - Mathf.Pow(thisHitDist, 2)) / 2;
+                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference / lastDistDifference)//hit.collider.transform.GetInstanceID() != prevHit.collider.transform.GetInstanceID()// kicker - this is supposed to be an edge.
                             {
-                                Instantiate(debugObject, hit.point, Quaternion.identity);
+                                if (thisHitDist - previousHitDist < 0)
+                                    Instantiate(debugObject, hit.point, Quaternion.identity);
+                                else
+                                    Instantiate(debugObject, prevHit.point, Quaternion.identity);
                             }
                             //now what
                         }
                         lastDistDifference = thisHitDist - previousHitDist;
                     }
                     previousHitDist = thisHitDist;
-                    
-                    /*if (thisHitDist - previousHitDist > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
+
+                    //Mathf.Sqrt(4 * Mathf.Pow(previousHitDist, 2) - Mathf.Pow(thisHitDist, 2))/2;
+                    /*
+                     if (thisHitDist - previousHitDist > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
                         {
                             Instantiate(debugObject, hit.transform);
                         }*/
                 }
+                prevHit = hit;
             }
         }
-        for (int angle = -40; angle < 40; angle += 2)
+        for (int angle = -60; angle < 60; angle += 1)
         {
             //cast rays at head level
             if (Physics.Raycast(transform.position + new Vector3(0, 0.4f, 0) * (1 - transform.localScale.y) , Quaternion.Euler(0, angle, 0) * transform.forward, out hit))
@@ -119,6 +127,7 @@ public class Enemy : MonoBehaviour {
         }
         //----------------------------------------------end of enemy move
         charSelf.move(moveRight, moveForward, speed);
+        /*
         if (healthPoints < 50)
         {
             GameObject[] covers = GameObject.FindGameObjectsWithTag("Cover");
@@ -139,14 +148,14 @@ public class Enemy : MonoBehaviour {
             {
                 transform.Translate(moveTo.normalized * speed * Time.deltaTime);
             }
-        }
-        if (healthPoints <= 0)
+        }*/
+        if (charSelf.healthPoints <= 0)
         {
             Destroy(self);
         }
     }
 
-    public void TakeDamage(float damage) {
+   /* public void TakeDamage(float damage) {
         healthPoints -= damage;
-    }
+    }*/
 }

@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class Character : MonoBehaviour {
-
+    public float healthPoints;
     private Vector3 movementVector;
     // Use this for initialization
     void Start () {
@@ -19,7 +19,6 @@ public class Character : MonoBehaviour {
     }
     public void move(float moveRight, float moveForward, float speed)
     {
-        
         movementVector.Set(moveRight, 0, moveForward);
         movementVector.Normalize();
         movementVector *= speed * Time.deltaTime;
@@ -35,5 +34,9 @@ public class Character : MonoBehaviour {
     {
         transform.localScale = new Vector3(0.35f, 0.45f, 0.35f);
         //transform.Translate(0, 0.1f, 0);
+    }
+    public void TakeDamage(float damage)
+    {
+        healthPoints -= damage;
     }
 }

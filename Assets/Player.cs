@@ -2,7 +2,6 @@
 using System.Collections;
 
 public class Player : MonoBehaviour {
-    private float healthPoints = 1;
     float playerSpeed = 2;
     float playerRotation = 65;
     private Gun gun;
@@ -10,10 +9,10 @@ public class Player : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        healthPoints = 100f;
         gun = transform.GetComponentInChildren<Gun>();
         charSelf = transform.GetComponent<Character>();
-	}
+        charSelf.healthPoints = 100f;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -41,9 +40,14 @@ public class Player : MonoBehaviour {
         {
             charSelf.uncrouch();
         }
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButton(0))
         {
             gun.fire();
+        }
+
+        if(charSelf.healthPoints < 0)
+        {
+            gameObject.GetComponent<Renderer>().material.color = new Color32(50, 0, 0, 1);
         }
 
 	}

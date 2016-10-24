@@ -23,7 +23,7 @@ public class Gun : MonoBehaviour {
         if(Time.time > nextFire){
             bulletsInMag--;
             GameObject clone = Instantiate(bullet, gun.position, gun.rotation) as GameObject;
-            clone.GetComponent<Rigidbody>().AddForce(clone.transform.forward * 350);
+            clone.GetComponent<Rigidbody>().AddForce(clone.transform.forward * 1350);
             nextFire = Time.time;
             if (bulletsInMag == 0)
             {

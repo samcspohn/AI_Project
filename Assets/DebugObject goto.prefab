@@ -24,7 +24,7 @@ GameObject:
   - 114: {fileID: 114000012520848650}
   - 33: {fileID: 33000012981214344}
   m_Layer: 0
-  m_Name: DebugObject
+  m_Name: DebugObject goto
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,7 +56,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: d005403e2584807498c897f75b24e8ad, type: 2}
+  - {fileID: 2100000, guid: 675b94fb02b0e4247bd24fb92a27e61d, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}

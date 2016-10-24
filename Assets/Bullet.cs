@@ -2,27 +2,20 @@
 using System.Collections;
 
 public class Bullet : MonoBehaviour {
-    public GameObject self;
-    public GameObject Enemy;
-    public float selfDestructTimer = 300;
-    private float selfDestructNow;
 	// Use this for initialization
 	void Start () {
-        selfDestructNow = Time.time + selfDestructTimer;
+        Destroy(gameObject, 3);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	    if(Time.time > selfDestructNow)
-        {
-            Destroy(self);
-        }
 	}
+
     void OnTriggerEnter(Collider collider)
     {
         if(collider.tag == "Enemy")
         {
-            Enemy enemy = collider.GetComponent<Enemy>();
+            Character enemy = collider.GetComponent<Character>();
             Debug.Log("hit: " + enemy);
             if(enemy != null)
             {
@@ -30,13 +23,13 @@ public class Bullet : MonoBehaviour {
             }
         }else if(collider.tag == "Player")
         {
-            Enemy enemy = collider.GetComponent<Enemy>();
-            Debug.Log("hit: " + enemy);
-            if (enemy != null)
+            Character player = collider.GetComponent<Character>();
+            Debug.Log("hit: " + player);
+            if (player != null)
             {
-                enemy.TakeDamage(15f);
+                player.TakeDamage(15f);
             }
         }
-        Destroy(self);
+        Destroy(gameObject);
     }
 }
