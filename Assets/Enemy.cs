@@ -26,6 +26,7 @@ public class Enemy : MonoBehaviour {
 		RaycastHit hit1;
         RaycastHit hit2 = new RaycastHit();
         RaycastHit hit3 = new RaycastHit();
+        RaycastHit hit0 = new RaycastHit(); // this is used as an assuring edge/corner detector -- is not czst unless preliminary requirements are met
         bool playerInSight = false;
         float playerAngle = 0f;
         int numOfRayHits = 0;
@@ -57,53 +58,28 @@ public class Enemy : MonoBehaviour {
                             if (numOfCasts > 3)
                             {
                                 GameObject debugObj = new GameObject();
-                                if (hit1.collider.transform.GetInstanceID() != hit2.collider.transform.GetInstanceID() && hit1.collider.transform.rotation.y == hit3.collider.transform.rotation.y)//Mathf.Abs(slope - slope3) < 1 && Mathf.Abs(slope - lastSlope) > 0.01)// && lastSlopeDiff)//Mathf.Abs(slope - lastSlope) > 0.01 && !lastSlopeDiff)//detect if edge
+                                if (hit1.collider.transform.GetInstanceID() != hit2.collider.transform.GetInstanceID())// && (hit1.collider.transform.rotation.y == hit3.collider.transform.rotation.y && Mathf.Abs(hit1.distance - hit3.distance) > 1))//detect if edge
                                 {
-                                    if (hit1.distance < hit2.distance)
-                                        debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-                                    else
-                                        debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
-                                    lastSlopeDiff = true;
-                                }
-                                /*else if (hit1.collider.transform.GetInstanceID() != hit3.collider.transform.GetInstanceID())//Mathf.Abs(slope - slope3) > 0.01 && Mathf.Abs(slope - lastSlope) > 0.01 && Mathf.Abs(lastSlope - slope3) > 0.01)// && Mathf.Abs(Mathf.Abs(hit3.distance - hit1.distance) - Mathf.Abs(hit2.distance - hit1.distance)) < Mathf.Abs(hit2.distance - hit1.distance))
-                                {
-                                    if (hit2.distance > (hit1.distance + hit3.distance) / 2)
+                                    if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle + 1, 0) * transform.forward, out hit0))
                                     {
-                                        debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
-                                        debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
+                                        if ((hit3.distance + hit0.distance) < (hit1.distance + hit2.distance) && Mathf.Abs(hit1.distance - hit2.distance) < 0.6)//this is a corner
+                                        {
+                                            if (hit1.distance < hit2.distance)
+                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                            else
+                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
+                                            //lastSlopeDiff = true;
+                                            debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
+                                        }
+                                        else //if(hit2.distance > (hit1.distance + hit3.distance) / 2)//this is an edge
+                                        {
+                                            if (hit1.distance < hit2.distance)
+                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                            else
+                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
+                                            //lastSlopeDiff = true;
+                                        }
                                     }
-                                }//
-                                /*else if((hit1.distance + hit3.distance) / 2 > hit2.distance && false)
-                                {
-                                    debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-
-
-
-                                    //bool hit2Closer = false;
-                                    /*if (hit1.distance < hit2.distance)//check which hit was closest to instantiate the debug object
-                                    {
-                                        debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-                                    }
-                                    else if (Mathf.Abs(slope - slope3) < 0.01 && Mathf.Abs(slope - lastSlope) > 0.02)// && !lastSlopeDiff)
-                                    {
-                                        debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-                                        //hit2Closer = true;
-                                    }
-
-
-                                    /*if ( Mathf.Abs(hit1.distance - hit3.distance) > Mathf.Abs(hit2.distance - hit1.distance))// Mathf.Abs(Mathf.Atan2(slope, 1) - Mathf.Atan2(slope3, 1)) < Mathf.PI / 2 ||//decide if the object is in a corner or on an edge
-                                    {
-                                        debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);//in a corner cyan
-                                    }
-                                    else
-                                    {
-                                        debugObj.GetComponent<Renderer>().material.color = new Color(1, 0.7f, 0);//on an edge orange
-                                    }*/
-                                    //lastSlopeDiff = true;
-                                //}
-                                else
-                                {
-                                    lastSlopeDiff = false;
                                 }
                             }
                             slope3 = lastSlope;
@@ -111,34 +87,6 @@ public class Enemy : MonoBehaviour {
                         }
                         lastSlope = slope;
                     }
-
-                    //Instantiate(debugObject, hit.point,Quaternion.identity);
-                    /*thisHitDist = hit.distance; 
-                    if(previousHitDist != -1)
-                    {
-                        if (lastDistDifference != -1)
-                        {
-                            //float baseLength = Mathf.Sqrt(4 * Mathf.Pow(previousHitDist, 2) - Mathf.Pow(thisHitDist, 2)) / 2;
-                            if (Mathf.Abs(thisHitDist - previousHitDist) > lastDistDifference / lastDistDifference)//hit.collider.transform.GetInstanceID() != prevHit.collider.transform.GetInstanceID()// kicker - this is supposed to be an edge.
-                            {
-                                if (thisHitDist - previousHitDist < 0)
-                                    Instantiate(debugObject, hit.point, Quaternion.identity);
-                                else
-                                    Instantiate(debugObject, prevHit.point, Quaternion.identity);
-                            }
-                            //now what
-                        }
-                        lastDistDifference = thisHitDist - previousHitDist;
-                    }
-                    previousHitDist = thisHitDist;
-                    */
-
-                    //Mathf.Sqrt(4 * Mathf.Pow(previousHitDist, 2) - Mathf.Pow(thisHitDist, 2))/2;
-                    /*
-                     if (thisHitDist - previousHitDist > lastDistDifference * lastDistDifference)// kicker - this is supposed to be an edge.
-                        {
-                            Instantiate(debugObject, hit.transform);
-                        }*/
                 }
                 hit2 = hit1;
                 numOfCasts++;
