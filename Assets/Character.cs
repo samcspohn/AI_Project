@@ -24,6 +24,13 @@ public class Character : MonoBehaviour {
         movementVector *= speed * Time.deltaTime;
         transform.Translate(movementVector);
     }
+    public void move(Vector3 direction, float speed)
+    {
+        movementVector = direction;
+        movementVector.Normalize();
+        movementVector *= speed * Time.deltaTime;
+        transform.Translate(movementVector);
+    }
     public void crouch()
     {
         //Debug.Log("crouch pressed");
