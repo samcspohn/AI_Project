@@ -26,6 +26,7 @@ public class Enemy : MonoBehaviour {
 		RaycastHit hit1;
         RaycastHit hit2 = new RaycastHit();
         RaycastHit hit3 = new RaycastHit();
+        //RaycastHit hit4 = new RaycastHit();
         RaycastHit hit0 = new RaycastHit(); // this is used as an assuring edge/corner detector -- is not czst unless preliminary requirements are met
         bool playerInSight = false;
         float playerAngle = 0f;
@@ -62,28 +63,51 @@ public class Enemy : MonoBehaviour {
                                 {
                                     if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle + 1, 0) * transform.forward, out hit0))
                                     {
-                                        if ((hit3.distance + hit0.distance) < (hit1.distance + hit2.distance) && Mathf.Abs(hit1.distance - hit2.distance) < 0.6)//this is a corner
+                                        //debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                        //debugObj.GetComponent<Renderer>().material.color = new Color(1, 0, 0);
+                                        //if ((hit3.distance + hit0.distance) < (hit1.distance + hit2.distance) || Mathf.Abs(hit1.distance - hit2.distance) * 0.5 < Mathf.Abs(hit2.distance - hit3.distance))//this is a corner
+                                        if(hit1.distance < hit2.distance)//something different is closer
                                         {
-                                            if (hit1.distance < hit2.distance)
+
+                                            if ((hit2.distance + hit3.distance) / 2 - (hit1.distance + hit0.distance) / 2  > 0.5 *(Mathf.Abs(hit0.distance - hit1.distance) / (hit0.distance * 0.01744f)))//is it an edge
+                                            {
                                                 debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                            }
                                             else
-                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
+                                            {
+                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;//or a corner
+                                                debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
+                                            }
                                             //lastSlopeDiff = true;
-                                            debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
+                                            
+
+
                                         }
-                                        else //if(hit2.distance > (hit1.distance + hit3.distance) / 2)//this is an edge
+                                        //if(hit2.distance > (hit1.distance + hit3.distance) / 2)//this is an edge
+                                        else //something different is farther
                                         {
-                                            if (hit1.distance < hit2.distance)
-                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-                                            else
+
+
+                                            if ((hit1.distance + hit0.distance) / 2 - (hit2.distance + hit3.distance) / 2 > 0.5 * (Mathf.Abs(hit2.distance - hit3.distance) / (hit3.distance * 0.01744f)))
+                                            {
                                                 debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
+                                            }
+                                            else
+                                            {
+                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                                debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
+                                            }
                                             //lastSlopeDiff = true;
+
+
                                         }
                                     }
                                 }
                             }
                             slope3 = lastSlope;
+                            //hit4 = hit3;
                             hit3 = hit2;
+                            
                         }
                         lastSlope = slope;
                     }
