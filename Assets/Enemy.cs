@@ -4,9 +4,11 @@ using System.Collections;
 public class Enemy : MonoBehaviour {
     public GameObject self;
     public GameObject debugObject;
+    public Transform arbitraryCube;
     public float speed = 2f;
     private Gun gun;
     private Character charSelf;
+    private Transform closestEdge;
     private float height;
     private float moveRight;
     private float moveForward;
@@ -26,8 +28,9 @@ public class Enemy : MonoBehaviour {
 		RaycastHit hit1;
         RaycastHit hit2 = new RaycastHit();
         RaycastHit hit3 = new RaycastHit();
-        //RaycastHit hit4 = new RaycastHit();
-        RaycastHit hit0 = new RaycastHit(); // this is used as an assuring edge/corner detector -- is not czst unless preliminary requirements are met
+        RaycastHit hit0 = new RaycastHit(); // this is used as an assuring edge/corner detector -- is not cast unless preliminary requirements are met
+        GameObject debugObj = new GameObject();
+        
         bool playerInSight = false;
         float playerAngle = 0f;
         int numOfRayHits = 0;
@@ -37,8 +40,10 @@ public class Enemy : MonoBehaviour {
         float lastSlope = -1f;
         float slope3 = -1f;
         bool lastSlopeDiff = false;
+        closestEdge = arbitraryCube;
         for (int angle = -60; angle < 60; angle+=1)
         {
+            bool isEdge = false;
             //cast rays at cover level
             if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit1))
             {
@@ -58,54 +63,48 @@ public class Enemy : MonoBehaviour {
                             //slope = (hit1.point.z - hit2.point.z) / (hit1.point.x - hit2.point.x);
                             if (numOfCasts > 3)
                             {
-                                GameObject debugObj = new GameObject();
-                                if (hit1.collider.transform.GetInstanceID() != hit2.collider.transform.GetInstanceID())// && (hit1.collider.transform.rotation.y == hit3.collider.transform.rotation.y && Mathf.Abs(hit1.distance - hit3.distance) > 1))//detect if edge
+                                
+                                if (hit1.collider.transform.GetInstanceID() != hit2.collider.transform.GetInstanceID())// definitely something
                                 {
                                     if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle + 1, 0) * transform.forward, out hit0))
                                     {
-                                        //debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
-                                        //debugObj.GetComponent<Renderer>().material.color = new Color(1, 0, 0);
-                                        //if ((hit3.distance + hit0.distance) < (hit1.distance + hit2.distance) || Mathf.Abs(hit1.distance - hit2.distance) * 0.5 < Mathf.Abs(hit2.distance - hit3.distance))//this is a corner
                                         if(hit1.distance < hit2.distance)//something different is closer
                                         {
-
-                                            if ((hit2.distance + hit3.distance) / 2 - (hit1.distance + hit0.distance) / 2  > 0.5 *(Mathf.Abs(hit0.distance - hit1.distance) / (hit0.distance * 0.01744f)))//is it an edge
+                                            if ((hit2.distance + hit3.distance) / 2 - (hit1.distance + hit0.distance) / 2  > 0.5 * Mathf.Pow((Mathf.Abs(hit0.distance - hit1.distance) / (hit0.distance * 0.01744f)), 0.5f) || (hit1.distance + hit2.distance) < (hit0.distance + hit3.distance))
                                             {
-                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;//is it an edge
+                                                isEdge = true;
                                             }
                                             else
                                             {
                                                 debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;//or a corner
                                                 debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
                                             }
-                                            //lastSlopeDiff = true;
-                                            
-
-
                                         }
-                                        //if(hit2.distance > (hit1.distance + hit3.distance) / 2)//this is an edge
                                         else //something different is farther
                                         {
 
 
-                                            if ((hit1.distance + hit0.distance) / 2 - (hit2.distance + hit3.distance) / 2 > 0.5 * (Mathf.Abs(hit2.distance - hit3.distance) / (hit3.distance * 0.01744f)))
+                                            if ((hit1.distance + hit0.distance) / 2 - (hit2.distance + hit3.distance) / 2 > 0.5 * Mathf.Pow((Mathf.Abs(hit2.distance - hit3.distance) / (hit3.distance * 0.01744f)), 0.5f) || (hit1.distance + hit2.distance) < (hit0.distance + hit3.distance)) // edge corner
                                             {
-                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;
+                                                debugObj = Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject;//is it an edge
+                                                isEdge = true;
                                             }
                                             else
                                             {
-                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;
+                                                debugObj = Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject;//or a corner
                                                 debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
                                             }
-                                            //lastSlopeDiff = true;
-
 
                                         }
+                                    }
+                                    if((debugObj.transform.position - transform.position).magnitude < (closestEdge.position - transform.position).magnitude && isEdge)
+                                    {
+                                        closestEdge = debugObj.transform;
                                     }
                                 }
                             }
                             slope3 = lastSlope;
-                            //hit4 = hit3;
                             hit3 = hit2;
                             
                         }
@@ -164,6 +163,13 @@ public class Enemy : MonoBehaviour {
         {
             moveRight = 1;
         }
+
+        //automatic movement
+        else if (Input.GetKey(KeyCode.P))
+        {
+            charSelf.move((closestEdge.position - transform.position), speed);
+        }
+
         //----------------------------------------------end of enemy move
         charSelf.move(moveRight, moveForward, speed);
         /*

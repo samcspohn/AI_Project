@@ -29,7 +29,7 @@ public class Character : MonoBehaviour {
         movementVector = direction;
         movementVector.Normalize();
         movementVector *= speed * Time.deltaTime;
-        transform.Translate(movementVector);
+        transform.Translate(movementVector, Space.World);
     }
     public void crouch()
     {
