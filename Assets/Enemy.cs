@@ -117,7 +117,6 @@ public class Enemy : MonoBehaviour {
                                     {
                                         closestEdge = debugObjects[debugObjects.Count - 1].transform;
                                     }
-                                    //debugObjects.Add(debugObj);
                                 }
                             }
                             slope3 = lastSlope;
