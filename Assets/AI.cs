@@ -22,6 +22,9 @@ public class AI : MonoBehaviour {
 		char[] actions = {'a','b'};
 		DecisionNode thisDecisionNode = new DecisionNode();
 		State thisState;
+		//for debugging
+		thisState = State.Covered;
+		//end of debugging values
 		thisDecisionNode.entity = Entity.AI;
 		int attackChoice;
 		int defenseChoice;
@@ -31,14 +34,14 @@ public class AI : MonoBehaviour {
 	}
 
 	private int min(DecisionNode currDecisionNode, State state , int steps){
-
+		return 0;
 	}
 	private int max(DecisionNode currDecisionNode, State state, int steps){
-
+		return 0;
 	}
 
 	State getState(){
-		
+		return State.Uncovered;
 	}
 
 }
