@@ -287,7 +287,7 @@ public class Enemy : MonoBehaviour {
         charSelf.turn(40 * randAngleMult * Time.deltaTime);
         //avoid walls and concave corners
         //if((averageAvoidPosition - transform.position).magnitude < 1.5)
-        charSelf.turn(averageAvoidPosition, 45 * Time.deltaTime / minDistVector.magnitude);// / (averageAvoidPosition - transform.position).magnitude);
+        charSelf.turn(averageAvoidPosition, 27 * Time.deltaTime / (minDistVector.magnitude * minDistVector.magnitude));// / (averageAvoidPosition - transform.position).magnitude);
         
         charSelf.move(transform.forward, 2f);
     }
