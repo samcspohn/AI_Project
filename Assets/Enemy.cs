@@ -253,65 +253,42 @@ public class Enemy : MonoBehaviour {
                 //i++;
             }
         }
-        // if(Physics.Raycast(transform.position, transform.right, out ray)){
-        //     wallDists[0] = ray.distance;
-        //     wallHits[0] = ray.point;
-        // }
-        // if(Physics.Raycast(transform.position, transform.forward, out ray)){
-        //     wallDists[1] = ray.distance;
-        //     wallHits[1] = ray.point;
-        // }
-        // if(Physics.Raycast(transform.position, -transform.right, out ray)){
-        //     wallDists[2] = ray.distance;
-        //     wallHits[2] = ray.point;
-        // }
-        // int min = 0;
-        // int max = 0;
-        //find the minimum and maximum distance vector of the three directions
-        // for(int i = 0; i < 3; i++){
-        //     if(wallDists[min] < wallDists[i]){
-        //         min = i;
-        //     }
-        //     if(wallDists[max] > wallDists[i]){
-        //         max = i;
-        //     }
-        // }
         Vector3 averageAvoidPosition = (transform.position);
         List<int> indeces = new List<int>();
-        int index = 0;
-        foreach(edgeType thisEdge in debugObjectsType){
-            if(thisEdge == edgeType.concave)
-                indeces.Add(index);
-                index++;
-        }
-        foreach(int index_ in indeces){
-            if((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude < 3)
-                averageAvoidPosition -= debugObjects[index_].GetComponent<Transform>().position;// / (debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude;
-        }
-        foreach(Vector3 wallHit in wallHits){
-            if((wallHit - transform.position).magnitude < 3)
-                averageAvoidPosition += wallHit;// / (wallHit - transform.position).magnitude;
-        }
-        averageAvoidPosition.y = 0;
-        GameObject debugObj = Instantiate(debugObject, averageAvoidPosition, transform.rotation) as GameObject;
-        debugObj.GetComponent<Renderer>().material.color = new Color(1,0,0);
-        debugObj.transform.localScale.Scale(new Vector3(10,10,10));
-        debugObjects.Add(debugObj);
-        debugObjectsType.Add(edgeType.convex);
-        //avoid walls and concave corners
-        //charSelf.turn(60 * randAngleMult * Time.deltaTime * Mathf.Clamp((averageAvoidPosition - transform.position).magnitude, 0, 1));
-        //if((averageAvoidPosition - transform.position).magnitude < 1.5)
-        charSelf.turn(averageAvoidPosition, 2f * Time.deltaTime);// / (averageAvoidPosition - transform.position).magnitude);
-        
-        // if(wallDists[min] < 1.3){
-        //     charSelf.turn(-averageAvoidPosition, 300 * Time.deltaTime);
-        //     // if(min == 1)
-        //     //     charSelf.turn(360 * Time.deltaTime);
-        //     // else
-        //     //     charSelf.turn(((min-1) * 120 / wallDists[min]) * Time.deltaTime);
-        // }else{
-        //     charSelf.turn(60 * randAngleMult * Time.deltaTime);
+        //int index = 0;
+        // foreach(edgeType thisEdge in debugObjectsType){
+        //     if(thisEdge == edgeType.concave)
+        //         indeces.Add(index);
+        //         index++;
         // }
+        // foreach(int index_ in indeces){
+        //     if((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude < 3)
+        //         averageAvoidPosition -= (debugObjects[index_].GetComponent<Transform>().position - transform.position);// / (debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude;
+        // }
+        Vector3 minDistVector = new Vector3(1000,1000,1000);
+        for(int i = 0; i < 8; i++){
+            //if((wallHit - transform.position).magnitude < 3)
+            float preference = -0.08f * Mathf.Abs(i - 4) + 1;
+            //if((wallHits[i] - transform.position).magnitude < 3)
+            Vector3 localVector = (wallHits[i] * preference - transform.position);
+            if(localVector.magnitude < minDistVector.magnitude){
+                minDistVector = localVector;
+            }
+            averageAvoidPosition += localVector;// / (wallHit - transform.position).magnitude;
+        }
+        averageAvoidPosition.y = 0;//transform.position.y;
+        
+        debugObjects.Add(Instantiate(debugObject, averageAvoidPosition, transform.rotation) as GameObject);
+        debugObj = debugObjects[debugObjects.Count - 1];
+        debugObj.GetComponent<Renderer>().material.color = new Color(1,0,0);
+        debugObj.transform.localScale *= 5;
+        debugObjectsType.Add(edgeType.convex);
+        //move with slight random headings
+        charSelf.turn(40 * randAngleMult * Time.deltaTime);
+        //avoid walls and concave corners
+        //if((averageAvoidPosition - transform.position).magnitude < 1.5)
+        charSelf.turn(averageAvoidPosition, 45 * Time.deltaTime / minDistVector.magnitude);// / (averageAvoidPosition - transform.position).magnitude);
+        
         charSelf.move(transform.forward, 2f);
     }
 }
