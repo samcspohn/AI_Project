@@ -299,10 +299,11 @@ public class Enemy : MonoBehaviour {
                 indeces.Add(index);
             index++;
         }
-        foreach (int index_ in indeces)///////////////////////////////////add convex corners to decrease distance traveled
+        //foreach (int index_ in indeces)///////////////////////////////////add convex corners to decrease distance traveled
+        for(int index_ = 0; index_ < debugObjects.tr)
         {
             if ((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude < 3) { }
-                //averageAvoidPosition += (debugObjects[index_].GetComponent<Transform>().position - transform.position) * 12 + minimumVector;// / (debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude;
+                averageAvoidPosition += (debugObjects[index_].GetComponent<Transform>().position - transform.position) * Mathf.Clamp((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude, 0.02f, 1) * 4;// / (debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude;
         }
         Vector3 minDistVector = new Vector3(1000,1000,1000);
         for(int i = 0; i < 8; i++){////////////////////////////////////////add radar cast vectors
@@ -311,7 +312,7 @@ public class Enemy : MonoBehaviour {
             if(localVector.magnitude < minDistVector.magnitude){
                 minDistVector = localVector;
             }
-            averageAvoidPosition -= 6 * debugObjects.Count * (localVector - transform.position).normalized / Mathf.Pow(Mathf.Abs((localVector - transform.position).magnitude), 3f);// / localVector.magnitude;
+            averageAvoidPosition -= (debugObjects.Count + 1) * 2 * (localVector) / Mathf.Pow((localVector).magnitude / 1.5f, 1.5f);// / localVector.magnitude;  
         }
         foreach (GameObject avoid in debugObjects)/////////////////////////add previous locations
         {
@@ -322,7 +323,7 @@ public class Enemy : MonoBehaviour {
                 float timeAllowed = avoid.GetComponent<AvoidArea>().Remove;
                 float temporalApathy = (timeExisted - Time.time) * 0.7f / timeAllowed;
                 //temporalApathy = temporalApathy * -0.1f + 1;
-                //averageAvoidPosition -= (avoid.transform.position - transform.position) * temporalApathy * spatialApathy * 1f;
+                averageAvoidPosition -= (avoid.transform.position - transform.position) * temporalApathy * spatialApathy * 2f;
             }
         }
 
@@ -337,7 +338,7 @@ public class Enemy : MonoBehaviour {
         //move with slight random headings
         charSelf.turn(40 * randAngleMult * Time.deltaTime);
         //avoid walls and concave corners
-        charSelf.turn(averageAvoidPosition, 35 * Time.deltaTime / (minDistVector.magnitude / 3 ));
+        charSelf.turn(averageAvoidPosition, 35 * Time.deltaTime / Mathf.Clamp(minDistVector.magnitude / 3, 0.001f, 2));
         
         charSelf.move(transform.forward, 2f);
     }
