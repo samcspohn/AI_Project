@@ -25,7 +25,7 @@ public class Enemy : MonoBehaviour {
     private float height;
     private float moveRight;
     private float moveForward;
-    private enum edgeType{convex, concave};
+    private enum edgeType{convex, concave, avoid};
     private char action = ' ';
     private float randAngleMult;
 
@@ -57,6 +57,7 @@ public class Enemy : MonoBehaviour {
                 {
                     DestroyImmediate(debugObjects[i]);
                     debugObjects.RemoveAt(i);
+                    debugObjectsType.RemoveAt(i);
                 }
                 i++;
             }
@@ -90,6 +91,7 @@ public class Enemy : MonoBehaviour {
         {
             currTimeA = Time.time;
             debugObjects.Add(Instantiate(areaAvoid, transform.position - transform.forward * 1 + new Vector3(Random.Range(-0.6f, 0.6f), 0, Random.Range(-0.6f, 0.6f)), Quaternion.identity) as GameObject);
+            debugObjectsType.Add(edgeType.avoid);
 
         }
 
@@ -290,7 +292,7 @@ public class Enemy : MonoBehaviour {
                 //i++;
             }
         }
-        Vector3 averageAvoidPosition = (transform.position);
+        Vector3 averageAvoidPosition = new Vector3(0,0,0); //(transform.position);
         List<int> indeces = new List<int>();
         int index = 0;
         foreach (edgeType thisEdge in debugObjectsType)
@@ -300,10 +302,14 @@ public class Enemy : MonoBehaviour {
             index++;
         }
         //foreach (int index_ in indeces)///////////////////////////////////add convex corners to decrease distance traveled
-        for(int index_ = 0; index_ < debugObjects.tr)
+        for(int index_ = 0; index_ < debugObjects.Count; index_++)
         {
-            if ((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude < 3) { }
-                averageAvoidPosition += (debugObjects[index_].GetComponent<Transform>().position - transform.position) * Mathf.Clamp((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude, 0.02f, 1) * 4;// / (debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude;
+            if (debugObjectsType[index_] != edgeType.avoid) {
+                if(debugObjectsType[index_] == edgeType.convex){}
+                //averageAvoidPosition += (debugObjects[index_].GetComponent<Transform>().position - transform.position) * Mathf.Clamp((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude, 0.02f, 1) * 4;
+             }else{
+                 //averageAvoidPosition -= (debugObjects[index_].GetComponent<Transform>().position - transform.position) / Mathf.Pow((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude / 2, 4f);
+             }
         }
         Vector3 minDistVector = new Vector3(1000,1000,1000);
         for(int i = 0; i < 8; i++){////////////////////////////////////////add radar cast vectors
@@ -336,9 +342,9 @@ public class Enemy : MonoBehaviour {
         debugObj.transform.localScale *= 5;
         debugObjectsType.Add(edgeType.convex);
         //move with slight random headings
-        charSelf.turn(40 * randAngleMult * Time.deltaTime);
+        //charSelf.turn(40 * randAngleMult * Time.deltaTime);
         //avoid walls and concave corners
-        charSelf.turn(averageAvoidPosition, 35 * Time.deltaTime / Mathf.Clamp(minDistVector.magnitude / 3, 0.001f, 2));
+        charSelf.turn(averageAvoidPosition, 120 * Time.deltaTime);// / Mathf.Clamp(minDistVector.magnitude / 3, 0.001f, 2));
         
         charSelf.move(transform.forward, 2f);
     }

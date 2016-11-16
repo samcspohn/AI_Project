@@ -17,30 +17,16 @@ public class Character : MonoBehaviour {
     {
         transform.Rotate(Vector3.up * rotation);
     }
-    public void turn_(Vector3 turnTowards, float angularSpeed)
-    {
-        //float step = angularSpeed * Time.deltaTime;
-        Vector3 newDir = Vector3.RotateTowards(transform.forward, turnTowards, angularSpeed, 0.0F);
-        //Debug.DrawRay(transform.position, newDir, Color.red);
-        transform.rotation = Quaternion.LookRotation(newDir);
-        //transform.Rotate(Vector3.up * rotation);
-    }
 
     public void turn(Vector3 turnTowards, float angularSpeed)
     {   
         Vector3 localTurnTowards = transform.InverseTransformDirection(turnTowards - transform.position);
-        Vector3 newDir =  localTurnTowards.normalized;// - transform.forward;// - turnTowards.normalized;
-        //float degrees = Mathf.Tan(Mathf.Abs(newDir.x / newDir.z));
-        if(newDir.x < 0){// || newDir.z < 0){
-            //degrees = -degrees;
+        Vector3 newDir =  localTurnTowards.normalized;
+        if(newDir.x < 0){
             angularSpeed = -angularSpeed;
         }
-        transform.Rotate(0,angularSpeed, 0);
-        //float step = angularSpeed * Time.deltaTime;
-        //Vector3 newDir = Vector3.RotateTowards(transform.forward, turnTowards, angularSpeed, 0.0F);
-        //Debug.DrawRay(transform.position, newDir, Color.red);
-        //transform.rotation = Quaternion.LookRotation(newDir);
-        //transform.Rotate(Vector3.up * rotation);
+        float angle = ((newDir.z < 0 ? Mathf.PI : 0) + Mathf.Atan(newDir.z / newDir.x)) / Mathf.PI;
+        transform.Rotate(0,angularSpeed * (angle * angle), 0);
     }
     public void move(float moveRight, float moveForward, float speed)
     {
