@@ -7,7 +7,12 @@ TagManager:
   - Enemy
   - Cover
   - Wall
-  - New Tag
+  - concave
+  - convex
+  - Navigator
+  - navNode
+  - myFuture
+  - otherFuture
   layers:
   - Default
   - TransparentFX
@@ -18,8 +23,8 @@ TagManager:
   - 
   - 
   - avoid object
-  - 
-  - 
+  - player
+  - player2
   - 
   - 
   - 

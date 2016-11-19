@@ -3,25 +3,43 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour {
+
+    public bool playerControl = false;
     public GameObject self;
+    public GameObject Other;
     public GameObject debugObject;
     public GameObject areaAvoid;
     public Transform arbitraryCube;
-    private GameObject debugObj;
 
-    public float speed = 2f;
+    public int steps = 6;
+    private GameObject debugObj;
+    private Character Navigator;
+    private NavMeshAgent agent;
+
+    public AI ai;
+
+    public GameObject previousNavNodeID = null;
+    public GameObject currentNavNodeID;
+    private GameObject nearestNode;
+
+
+
+    public float speed = 1f;
     public float turn = 0.5f;
-    public float avoidAreaRate = 2;
+    //public float avoidAreaRate = 2;
+    private bool reachedCover = false;
+    //private bool quickStep = false;
+    int avoidID = -1;
 
     private Gun gun;
     private Character charSelf;
-    private Transform closestEdge;
 
     public static List<GameObject> debugObjects;
     private static List<edgeType> debugObjectsType;
+    List<GameObject> cornersInView;
 
     private float currTime = 0;
-    private float currTimeA = 0;
+    //private float currTimeA = 0;
     private float height;
     private float moveRight;
     private float moveForward;
@@ -29,27 +47,44 @@ public class Enemy : MonoBehaviour {
     private char action = ' ';
     private float randAngleMult;
 
+    //char action;
     int avoid;
     int avoidMask;
+    bool fireOnce = true;
 
 
-    // Use this for initialization
     void Start () {
+        
+        ai = transform.GetComponent<AI>();
+
         debugObjects = new List<GameObject>();
         debugObjectsType = new List<edgeType>();
         gun = transform.GetComponentInChildren<Gun>();
         charSelf = transform.GetComponent<Character>();
+       // Navigator = transform.FindChild("Navigator").gameObject.transform.GetComponent<Character>();
+        agent = transform.GetComponent<NavMeshAgent>();
+       // Navigator.transform.parent = null;
         charSelf.healthPoints = 100;
         height = transform.localScale.y;
-        currTimeA = Time.time;
+
+        GameObject[] allNavNodes = GameObject.FindGameObjectsWithTag("navNode");
+        nearestNode = allNavNodes[0];
+        foreach(GameObject navNode in allNavNodes){
+        if((nearestNode.transform.position - transform.position).magnitude > (navNode.transform.position - transform.position).magnitude)
+            nearestNode = navNode;
+        }
+        currentNavNodeID = nearestNode;
+        agent.SetDestination(nearestNode.transform.position);
 
         avoid = 1 << 4;
         avoidMask = ~0 & avoid;
     }
 
-    // Update is called once per frame
     void Update()
     {
+
+        //////////////////////////////////////////////////regen
+        //charSelf.healthPoints += 6 * Time.deltaTime;
         for(int i = 0;  i < debugObjects.Count;){
             if(debugObjects[i] != null && debugObjects[i].GetComponent<AvoidArea>() != null)
             {
@@ -68,210 +103,110 @@ public class Enemy : MonoBehaviour {
                 debugObjectsType.RemoveAt(0);
             }
         }
+
         moveForward = 0;
         moveRight = 0;
-		RaycastHit hit1;
-        RaycastHit hit2 = new RaycastHit();
-        RaycastHit hit3 = new RaycastHit();
-        RaycastHit hit0 = new RaycastHit(); // this is used as an assuring edge/corner detector -- is not cast unless preliminary requirements are met
-        // = new GameObject();
-        
+
         bool playerInSight = false;
         float playerAngle = 0f;
         int numOfRayHits = 0;
         int targetHeight = 0;
-        int numOfCasts = 0;
-        float slope = -1;
-        float lastSlope = -1f;
-        float slope3 = -1f;
-        bool lastSlopeDiff = false;
-        closestEdge = arbitraryCube;
-
-        if(Time.time > currTimeA + avoidAreaRate)
-        {
-            currTimeA = Time.time;
-            debugObjects.Add(Instantiate(areaAvoid, transform.position - transform.forward * 1 + new Vector3(Random.Range(-0.6f, 0.6f), 0, Random.Range(-0.6f, 0.6f)), Quaternion.identity) as GameObject);
-            debugObjectsType.Add(edgeType.avoid);
-
-        }
+        //closestEdge = arbitraryCube;
 
 
-
-        for (int angle = -60; angle < 60; angle+=1)
-        {
-            bool isEdge = false;
-            //cast rays at cover level
-            if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward, out hit1))
-            {
-                if (hit1.collider.tag == "Player")
-                {
-                    playerInSight = true;
-                    numOfRayHits++;
-                    playerAngle += angle;
-                    targetHeight = 1;
-                }else//did not hit player - calculate object edge location
-                {
-                    if (numOfCasts > 1)
-                    {
-                        slope = (hit1.point.z - hit2.point.z) / (hit1.point.x - hit2.point.x);
-                        if (numOfCasts > 2)
-                        {
-                            //slope = (hit1.point.z - hit2.point.z) / (hit1.point.x - hit2.point.x);
-                            if (numOfCasts > 3)
-                            {
-                                
-                                if (hit1.collider.transform.GetInstanceID() != hit2.collider.transform.GetInstanceID())// definitely something
-                                {
-                                    if (Physics.Raycast(transform.position, Quaternion.Euler(0, angle + 1, 0) * transform.forward, out hit0))
-                                    {
-                                        //check if too close - later
-
-
-                                        if(hit1.distance < hit2.distance)//something different is closer
-                                        {
-                                            if ((hit2.distance + hit3.distance) / 2 - (hit1.distance + hit0.distance) / 2  > 0.5 * Mathf.Pow((Mathf.Abs(hit0.distance - hit1.distance) / (hit0.distance * 0.01744f)), 0.5f) || (hit1.distance + hit2.distance) < (hit0.distance + hit3.distance))
-                                            {
-                                                debugObjects.Add(Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject);//is it an edge "convex"
-                                                debugObjectsType.Add(edgeType.convex);
-                                                isEdge = true;
-                                            }
-                                            else
-                                            {
-                                                debugObjects.Add(Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject);//or a corner "concave"
-                                                debugObjectsType.Add(edgeType.concave);
-                                                debugObj = debugObjects[debugObjects.Count - 1];
-                                                debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
-                                            }
-                                        }
-                                        else //something different is farther
-                                        {
-
-                                            if ((hit1.distance + hit0.distance) / 2 - (hit2.distance + hit3.distance) / 2 > 0.5 * Mathf.Pow((Mathf.Abs(hit2.distance - hit3.distance) / (hit3.distance * 0.01744f)), 0.5f) || (hit1.distance + hit2.distance) < (hit0.distance + hit3.distance)) // edge corner
-                                            {
-                                                debugObjects.Add(Instantiate(debugObject, hit2.point, Quaternion.identity) as GameObject);//is it an edge "convex"
-                                                debugObjectsType.Add(edgeType.convex);
-                                                isEdge = true;
-                                            }
-                                            else
-                                            {
-                                                debugObjects.Add(Instantiate(debugObject, hit1.point, Quaternion.identity) as GameObject);//or a corner "concave"
-                                                debugObjectsType.Add(edgeType.concave);
-                                                debugObj = debugObjects[debugObjects.Count - 1];
-                                                debugObj.GetComponent<Renderer>().material.color = new Color(0, 1, 0.7f);
-                                            }
-
-                                        }
-                                    }
-                                    if((debugObjects[debugObjects.Count - 1].transform.position - transform.position).magnitude < (closestEdge.position - transform.position).magnitude && isEdge)
-                                    {
-                                        closestEdge = debugObjects[debugObjects.Count - 1].transform;
-                                    }
-                                }
-                            }
-                            slope3 = lastSlope;
-                            hit3 = hit2;
-                            
-                        }
-                        lastSlope = slope;
+        GameObject[] debugObjectsSimple = GameObject.FindGameObjectsWithTag("convex");
+        cornersInView = new List<GameObject>();
+        foreach(GameObject convexCorner in debugObjectsSimple){
+            RaycastHit hit;
+            Vector3 rayDirection = convexCorner.transform.position - transform.position;
+            if((Vector3.Angle(rayDirection, transform.forward)) <= 120 * 0.5f){ // Detect if player is within the field of view
+                if (Physics.Raycast (transform.position, rayDirection, out hit)) {
+                    if (hit.transform.tag == "convex") {
+                        //Debug.Log("Can see corner");
+                        cornersInView.Add(convexCorner);
                     }
                 }
-                hit2 = hit1;
-                numOfCasts++;
             }
         }
-        for (int angle = -60; angle < 60; angle += 1)
-        {
-            //cast rays at head level
-            if (Physics.Raycast(transform.position + new Vector3(0, 0.4f, 0) * (1 - transform.localScale.y) , Quaternion.Euler(0, angle, 0) * transform.forward, out hit1))
-            {
-                if (hit1.collider.tag == "Player")
-                {
-                    playerInSight = true;
-                    numOfRayHits++;
-                    playerAngle += angle;
-                    targetHeight = 2;
-                }
-            }
-        }
-        if (playerInSight){
-            if(targetHeight == 1)
-            {
-                charSelf.crouch();
-            }
-            else if(targetHeight == 2)
-            {
-                charSelf.uncrouch();
-            }
-            playerAngle = playerAngle / numOfRayHits;
-            transform.GetComponent<Renderer>().material.color = Color.green;
-            transform.Rotate(0, playerAngle, 0);
-            gun.fire();
-        }else{
-            charSelf.uncrouch();
-            transform.GetComponent<Renderer>().material.color = Color.red;
-        }
+
+        // if (playerInSight){
+        //     if(targetHeight == 1)
+        //     {
+        //         charSelf.crouch();
+        //     }
+        //     else if(targetHeight == 2)
+        //     {
+        //         charSelf.uncrouch();
+        //     }
+        //     playerAngle = playerAngle / numOfRayHits;
+        //     transform.GetComponent<Renderer>().material.color = Color.green;
+        //     transform.Rotate(0, playerAngle, 0);
+        //     gun.fire();
+        // }else{
+        //     charSelf.uncrouch();
+        //     transform.GetComponent<Renderer>().material.color = Color.red;
+        // }
         //----------------------------------------------debug enemy move
-        var camRotateHorizontal = Input.GetAxisRaw("Mouse X") * Time.deltaTime * 80;
-        charSelf.turn(camRotateHorizontal);
-        if (Input.GetKey(KeyCode.T))
-        {
-            moveForward = 1;
-        }else if (Input.GetKey(KeyCode.G))
-        {
-            moveForward = -1;
-        }
-        if (Input.GetKey(KeyCode.F))
-        {
-            moveRight = -1;
-        }else if (Input.GetKey(KeyCode.H))
-        {
-            moveRight = 1;
-        }
-
-        //automatic movement
-
-        //input
-        
-        if(Time.time > currTime + turn){
-            bool breaker = false;
-            foreach(KeyCode input in System.Enum.GetValues(typeof(KeyCode))){
-                if(Input.GetKey(input)){
-                    breaker = true;
-                    switch(input){          
-                        case KeyCode.P:
-                            Debug.Log("P");
-                            action = 'p';
-                            currTime = Time.time;
-                            break;
-                        case KeyCode.O:
-                            Debug.Log("O");
-                            action = 'o';
-                            randAngleMult = Random.value * 2 - 1;
-                            currTime = Time.time;
-                            break;
-                        default:
-                            action = ' ';
-                            breaker = false;
-                            break;
-                    }
-                }
-                if(breaker)
-                    break;
+        if(playerControl){
+            var camRotateHorizontal = Input.GetAxisRaw("Mouse X") * Time.deltaTime * 80;
+            charSelf.turn(camRotateHorizontal);
+            if (Input.GetKey(KeyCode.T))
+            {
+                moveForward = 1;
+            }else if (Input.GetKey(KeyCode.G))
+            {
+                moveForward = -1;
             }
+            if (Input.GetKey(KeyCode.F))
+            {
+                moveRight = -1;
+            }else if (Input.GetKey(KeyCode.H))
+            {
+                moveRight = 1;
+            }
+            charSelf.move(moveRight,moveForward,speed);
         }
-        
-        //output
-        
-        if (Time.time < currTime + turn)// move to edge in a turn
-        {
-            if(action == 'p' && closestEdge.GetInstanceID() != arbitraryCube.GetInstanceID())
-                charSelf.move((closestEdge.position - transform.position), speed);
-            else if(action == 'o')
-                patrol(randAngleMult);
+        //////////////////////////////////////////////////////////////////////////////automatic movement
+
+        ///////////////////////////////////////////input
+        if(Other != null){
+
+            if(Time.time > currTime + turn){
+                action = ai.think(steps);
+                currTime = Time.time;
+                fireOnce = true;
+            }
+            
+            ////////////////////////////////////////////output
+            
+            if (Time.time < currTime + turn)// move to edge in a turn
+            {
+            // agent.Resume();
+                GameObject closestCorner = getNearestCorner();
+                if(action == 'p' && fireOnce){// && closestCorner != null)
+                Debug.Log("taking cover");
+                    takeCover();
+                }
+                else if(EisVisible()){
+                    Debug.Log("shooting");
+                    shoot();
+                }
+                else if(action == 'o' && fireOnce){
+                    Debug.Log("patrolling");
+                    patrol();
+                    //quickStep = false;
+                }
+                fireOnce = false;
+
+            }else{
+                //agent.Stop();
+            }
         }
 
         //----------------------------------------------end of enemy move
-        charSelf.move(moveRight, moveForward, speed);
+        // Navigator.move(moveRight, moveForward, speed);
+//        Navigator.transform.position = new Vector3(Navigator.transform.position.x, 0.8f, Navigator.transform.position.z);
+  //      transform.position = Navigator.transform.position;
         // hide behind cover
         if (charSelf.healthPoints <= 0)
         {
@@ -279,73 +214,253 @@ public class Enemy : MonoBehaviour {
         }
         transform.rotation.eulerAngles.Set(0, transform.rotation.eulerAngles.y, 0);
     }
-    void patrol(float randAngleMult){
+    public bool EisVisible(){
+		RaycastHit hit;
+		if(Physics.Raycast(self.transform.position, Other.transform.position - self.transform.position, out hit)){
+			if(hit.collider.gameObject == Other){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		return false;
+	}
+    void patrol_(float randAngleMult, bool quickStep){
 
+        Vector3 minimumVector = new Vector3(0.00001f, 0.00001f, 0.00001f);
+        Vector3 averageAvoidPosition = (transform.position);
+
+        foreach(GameObject convexCorner in cornersInView){ //////////////////////////////////////////add convex corners to decrease distance traveled
+            averageAvoidPosition += (convexCorner.transform.position - transform.position) * Mathf.Clamp((convexCorner.transform.position - transform.position).magnitude, 0.02f, 1) * 4;
+        }
+
+        foreach (GameObject avoid in debugObjects) /////////////////////////////////////////////////////subtract previous locations**************also important
+        {
+            if (avoid.GetComponent<AvoidArea>() != null)
+            {
+                float spatialApathy = 2f / (1 + Mathf.Pow((avoid.transform.position - transform.position).magnitude / 2, 1.8f));
+                float timeExisted = avoid.GetComponent<AvoidArea>().RemoveTimer;
+                float timeAllowed = avoid.GetComponent<AvoidArea>().Remove;
+                float temporalApathy = 1 / (1 + Mathf.Pow((timeExisted - Time.time), 2));
+                averageAvoidPosition -= (avoid.transform.position - transform.position) * temporalApathy * spatialApathy;
+            }
+        }
+        averageAvoidPosition.Normalize();
+        averageAvoidPosition *= 0.5f;
+        Vector3 Obstacles = avoidObstacles();
+        Obstacles.Normalize();
+        Obstacles *= 0.5f;
+        averageAvoidPosition += avoidObstacles(); // steer clear of walls
+        averageAvoidPosition.y = 1f;
+        
+        debugObjects.Add(Instantiate(debugObject, averageAvoidPosition, transform.rotation) as GameObject);//add debug anti-av avoid object
+        debugObj = debugObjects[debugObjects.Count - 1];
+        debugObj.GetComponent<Renderer>().material.color = new Color(1,0,0);
+        debugObj.transform.localScale *= 5;
+        debugObjectsType.Add(edgeType.concave);
+        
+        charSelf.turn(120 * randAngleMult * Time.deltaTime / (quickStep ? Time.deltaTime / speed : 1)); //move with slight random headings
+        
+        Navigator.turn(averageAvoidPosition, 260 * Time.deltaTime / (quickStep ? Time.deltaTime / 2 : 1)); // avoid previous areas
+        //charSelf.move(averageAvoidPosition, 0.01f);
+        RaycastHit futurePos;
+        if(Physics.Raycast(Navigator.transform.position, Navigator.transform.forward, out futurePos)){
+            if((futurePos.point - transform.position).magnitude < Navigator.transform.forward.magnitude * speed / 2.3 && quickStep){
+                Navigator.transform.Translate((futurePos.point - transform.position) * 0.5f);
+            }
+            else{
+                Navigator.move(Navigator.transform.forward, speed / (quickStep ? Time.deltaTime / speed : 1));
+                Debug.Log("quick step");
+            }
+        }
+        Navigator.transform.position = new Vector3(Navigator.transform.position.x, 0.8f, Navigator.transform.position.z);
+        transform.position = Navigator.transform.position;
+    }
+    public void patrol(){
+        NavNode currNode = currentNavNodeID.GetComponent<NavNode>(); 
+        if(currNode.forward != null && currNode.forward != previousNavNodeID){
+            agent.SetDestination(currNode.forward.transform.position);
+           // Debug.Log("going forward");
+            previousNavNodeID = currentNavNodeID;
+            currentNavNodeID = currNode.forward;
+        } 
+        else if(currNode.left != null && currNode.left != previousNavNodeID){
+            agent.SetDestination(currNode.left.transform.position);
+           // Debug.Log("going left");
+            previousNavNodeID = currentNavNodeID;
+            currentNavNodeID = currNode.left;
+        } 
+        else if(currNode.right != null && currNode.right != previousNavNodeID){
+            agent.SetDestination(currNode.right.transform.position);
+            //Debug.Log("going right");
+            previousNavNodeID = currentNavNodeID;
+            currentNavNodeID = currNode.right;
+        } 
+        else if(currNode.backward != null && currNode.backward != previousNavNodeID){
+            agent.SetDestination(currNode.backward.transform.position);
+            //Debug.Log("going backward");
+            previousNavNodeID = currentNavNodeID;
+            currentNavNodeID = currNode.backward;
+        }
+
+    }
+
+    GameObject getNearestCorner(){
+        GameObject[] debugObjectsSimple = GameObject.FindGameObjectsWithTag("convex");
+        GameObject closestCorner = null;// = debugObjectsSimple[0];
+        foreach(GameObject convexCorner in debugObjectsSimple){
+            RaycastHit hit;
+            Vector3 rayDirection = convexCorner.transform.position - transform.position;
+            if (Physics.Raycast (transform.position, rayDirection, out hit)) {
+                if (hit.transform.tag == "convex"){
+                    closestCorner = (closestCorner == null ? convexCorner : ((closestCorner.transform.position - transform.position).magnitude > (convexCorner.transform.position - transform.position).magnitude) ? convexCorner : closestCorner);
+                }
+            }
+        }
+        return closestCorner;
+    }
+
+    void takeCover_(){
+        GameObject hideSpot = getNearestCorner();
+        Vector3 avoidArea = avoidObstacles();
+        Vector3 hidePoint = (hideSpot.transform.position + hideSpot.transform.forward * 2f);// - Navigator.transform.position);
+        if((hidePoint - transform.position).magnitude < 0.6f){
+            reachedCover = true;
+            Debug.Log("reached cover");
+        }
+        if(!reachedCover){
+            Navigator.move(hidePoint - transform.position, speed);// + avoidArea * 0.01f, speed); // move Navigator
+            transform.position = Navigator.transform.position;// put the enemy at the Navigators position
+        }
+        
+        if(reachedCover){
+            GameObject other =  GameObject.FindGameObjectWithTag("Player");
+            Vector3 rayDirection = hideSpot.transform.position - other.transform.position;
+            RaycastHit hit;
+            //if(Physics.Raycast(hidePoint, rayDirection, out hit, 10000, (1 << 9))){
+                if((Vector3.Angle(rayDirection, hideSpot.transform.forward)) <= 180 && (Vector3.Angle(rayDirection, hideSpot.transform.forward)) > 0){
+                    Debug.Log("player is on right side of cover");
+                    //move left of cover
+                    Vector3 RightCover = hideSpot.transform.FindChild("leftCover").transform.position;
+                    Debug.Log(RightCover);
+                    Navigator.move(hideSpot.transform.FindChild("rightCover").transform.position - transform.position, speed);
+                    // Navigator.turn(hideSpot.transform.FindChild("rightCover").transform.position, 10);
+                    // Navigator.move(Navigator.transform.forward, speed);
+                    transform.position = Navigator.transform.position;
+
+                    if (Physics.Raycast (transform.position, rayDirection, out hit)) {
+                        if (hit.transform.tag == "Player") {
+                        }
+                    }
+                }else{//} if((Vector3.Angle(rayDirection, hideSpot.transform.forward)) <= -180 && (Vector3.Angle(rayDirection, transform.forward)) < 0){
+                    Debug.Log("player is on left side of cover");
+                    //move right
+                    Vector3 RightCover = hideSpot.transform.FindChild("rightCover").transform.position;
+                    Debug.Log(RightCover);
+                    Navigator.move(hideSpot.transform.FindChild("rightCover").transform.position - transform.position, speed);
+                    // Navigator.turn(hideSpot.transform.FindChild("rightCover").transform.position, 10);
+                    // Navigator.move(Navigator.transform.forward, speed);
+                    transform.position = Navigator.transform.position;
+                }
+            //}
+        }
+    }
+    public void takeCover(){
+        // GameObject hideSpot = getNearestCorner();
+         GameObject other = Other;
+        
+        // Vector3 rayDirection = hideSpot.transform.position - other.transform.position;
+        RaycastHit hit;
+        //if(Physics.Raycast(hideSpot.transform.position, rayDirection, out hit, 10000, (1 << 9))){
+
+        GameObject[] debugObjectsSimple = GameObject.FindGameObjectsWithTag("convex");
+        Vector3 closestCorner = new Vector3();// = debugObjectsSimple[0];
+        bool noActivation = true;
+        foreach(GameObject convexCorner in debugObjectsSimple){
+            Vector3 destination = convexCorner.transform.FindChild("leftCover").transform.position;
+            if(convexCorner.transform.GetInstanceID() != avoidID){
+                
+                if(Physics.Raycast(destination, other.transform.position - destination, out hit, 1000, (1<<10))){
+                    //if(hit.collider.gameObject == Other)
+                    //Debug.Log("hit the player from the left side");
+                    
+                    //Debug.Log("this is the one");
+                    if (hit.collider.gameObject == Other && (closestCorner - transform.position).magnitude > (destination - transform.position).magnitude){// && (!(Mathf.Abs(Vector3.Angle(agent.steeringTarget, other.transform.position -transform.position)) < 60) || !noActivation)){
+                        //Debug.Log("did not hit the player from the left side");
+                        closestCorner = destination;
+                        noActivation = false;
+                        agent.SetDestination(closestCorner);
+                    }
+                }
+                destination = convexCorner.transform.FindChild("rightCover").transform.position;
+                if(Physics.Raycast(destination, other.transform.position - destination, out hit, 1000, (1<<10))){
+                    //if(hit.collider.gameObject == Other)
+                    //Debug.Log("hit the player from the right side");
+                    if (hit.collider.gameObject == Other && (closestCorner - transform.position).magnitude > (destination - transform.position).magnitude){// && (!(Mathf.Abs(Vector3.Angle(agent.steeringTarget, other.transform.position -transform.position )) < 60) || !noActivation)){
+                        //Debug.Log("did not hit the player from the right side");
+                        closestCorner = destination;
+                        noActivation = false;
+                        agent.SetDestination(closestCorner);
+                    }
+                }
+            }else{
+                //Debug.Log("this is the one");
+            }
+        }
+        Debug.Log(noActivation);
+        if(noActivation){
+            Collider[] covers = Physics.OverlapSphere(agent.destination + new Vector3(0,0f,0), 0.1f);
+            foreach(Collider cover in covers){
+                //if(cover.gameObject.transform.parent != null){
+
+                if(cover.gameObject.name == "leftCover" || cover.gameObject.name == "rightCover"){
+                    //Debug.Log("one of the covers");
+                GameObject culprit = cover.gameObject;
+                //culprit.GetComponent<Renderer>().material.color = new Color(0.5f,0.6f,0.5f);
+                avoidID = cover.gameObject.transform.parent.gameObject.transform.GetInstanceID();
+                // }
+                }
+            }
+        }
+        if(agent.remainingDistance < 0.4f){
+            GameObject[] allNavNodes = GameObject.FindGameObjectsWithTag("navNode");//reset current navNode
+            GameObject closestNode = allNavNodes[0];
+            foreach(GameObject navNode in allNavNodes){
+            if((closestNode.transform.position - transform.position).magnitude > (navNode.transform.position - transform.position).magnitude)
+                closestNode = navNode;
+            }
+            currentNavNodeID = closestNode;
+            previousNavNodeID = null;
+        }
+
+    }
+    public void shoot(){
+        transform.GetChild(1).LookAt(Other.transform.position);
+        Debug.Log("firing gun");
+        gun.fire();
+    }
+    Vector3 avoidObstacles(){
+        Vector3 averageAvoidPosition = (transform.position);
         Vector3 minimumVector = new Vector3(0.00001f, 0.00001f, 0.00001f);
         RaycastHit ray;
         float[] wallDists = {0,0,0};
         Vector3[] wallHits = {new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0), new Vector3(0,0,0)};
-        //int i = 0;
         for(int angle = 0; angle < 8; angle++){
-            if(Physics.Raycast(transform.position, Quaternion.Euler(0,(angle - 4) * 45,0) * transform.forward, out ray)){
+            if(Physics.Raycast(transform.position, Quaternion.Euler(0,(angle - 4) * 45,0) * Navigator.transform.forward, out ray)){
                 wallHits[angle] = ray.point;
-                //i++;
             }
         }
-        Vector3 averageAvoidPosition = new Vector3(0,0,0); //(transform.position);
-        List<int> indeces = new List<int>();
-        int index = 0;
-        foreach (edgeType thisEdge in debugObjectsType)
-        {
-            if (thisEdge == edgeType.convex)
-                indeces.Add(index);
-            index++;
-        }
-        //foreach (int index_ in indeces)///////////////////////////////////add convex corners to decrease distance traveled
-        for(int index_ = 0; index_ < debugObjects.Count; index_++)
-        {
-            if (debugObjectsType[index_] != edgeType.avoid) {
-                if(debugObjectsType[index_] == edgeType.convex){}
-                //averageAvoidPosition += (debugObjects[index_].GetComponent<Transform>().position - transform.position) * Mathf.Clamp((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude, 0.02f, 1) * 4;
-             }else{
-                 //averageAvoidPosition -= (debugObjects[index_].GetComponent<Transform>().position - transform.position) / Mathf.Pow((debugObjects[index_].GetComponent<Transform>().position - transform.position).magnitude / 2, 4f);
-             }
-        }
         Vector3 minDistVector = new Vector3(1000,1000,1000);
-        for(int i = 0; i < 8; i++){////////////////////////////////////////add radar cast vectors
-            float preference = 1;// -0.08f * Mathf.Abs(i - 4) + 1;
-            Vector3 localVector = (wallHits[i] * preference - transform.position);
+        for(int i = 0; i < 8; i++){ ////////////////////////////////////////////////////////////////subtract radar cast vectors*******************important
+            Vector3 localVector = (wallHits[i] - transform.position) ;
             if(localVector.magnitude < minDistVector.magnitude){
                 minDistVector = localVector;
             }
-            averageAvoidPosition -= (debugObjects.Count + 1) * 2 * (localVector) / Mathf.Pow((localVector).magnitude / 1.5f, 1.5f);// / localVector.magnitude;  
+            averageAvoidPosition -= (localVector) / Mathf.Pow((localVector).magnitude / 2f, 2f) * 16;// / localVector.magnitude;  
         }
-        foreach (GameObject avoid in debugObjects)/////////////////////////add previous locations
-        {
-            if (avoid.GetComponent<AvoidArea>() != null)
-            {
-                float spatialApathy = 2f / (1 + Mathf.Pow((avoid.transform.position - transform.position).magnitude / 3, 1.6f));
-                float timeExisted = avoid.GetComponent<AvoidArea>().RemoveTimer;
-                float timeAllowed = avoid.GetComponent<AvoidArea>().Remove;
-                float temporalApathy = (timeExisted - Time.time) * 0.7f / timeAllowed;
-                //temporalApathy = temporalApathy * -0.1f + 1;
-                averageAvoidPosition -= (avoid.transform.position - transform.position) * temporalApathy * spatialApathy * 2f;
-            }
-        }
-
-
-        averageAvoidPosition.y = 0;//transform.position.y;
-        
-        debugObjects.Add(Instantiate(debugObject, averageAvoidPosition, transform.rotation) as GameObject);
-        debugObj = debugObjects[debugObjects.Count - 1];
-        debugObj.GetComponent<Renderer>().material.color = new Color(1,0,0);
-        debugObj.transform.localScale *= 5;
-        debugObjectsType.Add(edgeType.convex);
-        //move with slight random headings
-        //charSelf.turn(40 * randAngleMult * Time.deltaTime);
-        //avoid walls and concave corners
-        charSelf.turn(averageAvoidPosition, 120 * Time.deltaTime);// / Mathf.Clamp(minDistVector.magnitude / 3, 0.001f, 2));
-        
-        charSelf.move(transform.forward, 2f);
+        //charSelf.turn(averageAvoidPosition, 45 * Time.deltaTime / Mathf.Clamp(minDistVector.magnitude / 3, 0.001f, 2)); //avoid walls and concave corners
+        return averageAvoidPosition;
     }
 }
+
+

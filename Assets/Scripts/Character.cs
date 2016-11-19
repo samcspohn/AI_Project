@@ -4,15 +4,7 @@ using System.Collections;
 public class Character : MonoBehaviour {
     public float healthPoints;
     private Vector3 movementVector;
-    // Use this for initialization
-    void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+
     public void turn(float rotation)
     {
         transform.Rotate(Vector3.up * rotation);
@@ -26,14 +18,16 @@ public class Character : MonoBehaviour {
             angularSpeed = -angularSpeed;
         }
         float angle = ((newDir.z < 0 ? Mathf.PI : 0) + Mathf.Atan(newDir.z / newDir.x)) / Mathf.PI;
-        transform.Rotate(0,angularSpeed * (angle * angle), 0);
+        transform.Rotate(0,angularSpeed * (angle * angle + 0.1f), 0);
     }
     public void move(float moveRight, float moveForward, float speed)
     {
-        movementVector.Set(moveRight, 0, moveForward);
-        movementVector.Normalize();
-        movementVector *= speed * Time.deltaTime;
-        transform.Translate(movementVector);
+        if(moveRight != 0 || moveForward != 0){
+            movementVector.Set(moveRight, 0, moveForward);
+            movementVector.Normalize();
+            movementVector *= speed * Time.deltaTime;
+            transform.Translate(movementVector);    
+        }
     }
     public void move(Vector3 direction, float speed)
     {
